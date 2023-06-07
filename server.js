@@ -8,21 +8,6 @@ const cache = require('./util/apicache').middleware
 const { cookieToJson } = require('./util/index')
 const fileUpload = require('express-fileupload')
 const decode = require('safe-decode-uri-component')
-const checkToken = () => {
-  return async function (ctx, next) {
-    const authHeader = ctx.request.header.authorization;
-
-    if (!authHeader) {
-      ctx.throw(401, "缺少请求密钥");
-    }
-
-    if (authHeader !== "Qd8!$L2&x1p#3wK*4c@9tZy5r6f7GzA") {
-      ctx.throw(403, "接口鉴权失败");
-    }
-
-    await next();
-  };
-};
 /**
  * The version check result.
  * @readonly
@@ -200,7 +185,19 @@ async function consturctServer(moduleDefs) {
    * Cache
    */
   app.use(cache('2 minutes', (_, res) => res.statusCode === 200))
-  app.use(checkToken())
+   /**
+   * checkToken
+   */
+  app.use((req, res, next) => {
+     const token = req.headers.authorization;
+    if (!token) {
+      res.status(401).end()
+    }
+    if (token !== "Qd8!$L2&x1p#3wK*4c@9tZy5r6f7GzA") {
+       res.status(403).end()
+    }
+    next();
+  });
   /**
    * Special Routers
    */
