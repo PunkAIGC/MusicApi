@@ -8,7 +8,26 @@ const cache = require('./util/apicache').middleware
 const { cookieToJson } = require('./util/index')
 const fileUpload = require('express-fileupload')
 const decode = require('safe-decode-uri-component')
-
+const checkToken = ()=>{
+  return async function (ctx, next) {
+    const path = ctx.path;
+    const forbiddenFields = ["logo.png", "openai.json", ".well-known", "readme"];
+    const isArrow = forbiddenFields.some((field) => path.includes(field));
+    // 获取请求头中的验证信息
+    const authHeader = ctx.request.header.authorization;
+    // 判断是否有验证信息
+    if (!authHeader) {
+        ctx.throw(401, "缺少请求密钥");
+     }
+      // 这里可以根据实际需求，对验证信息进行解析和验证
+      if (authHeader !== "Qd8!$L2&x1p#3wK*4c@9tZy5r6f7GzA") {
+        ctx.throw(403, "接口鉴权失败");
+      }
+    
+    // 继续处理请求
+    await next();
+  };
+}
 /**
  * The version check result.
  * @readonly
@@ -186,7 +205,7 @@ async function consturctServer(moduleDefs) {
    * Cache
    */
   app.use(cache('2 minutes', (_, res) => res.statusCode === 200))
-
+  app.use(checkToken())
   /**
    * Special Routers
    */
