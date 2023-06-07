@@ -191,10 +191,10 @@ async function consturctServer(moduleDefs) {
   app.use((req, res, next) => {
      const token = req.headers.authorization;
     if (!token) {
-      res.status(401).end()
+      return res.status(401).send("缺少请求密钥");
     }
     if (token !== "Qd8!$L2&x1p#3wK*4c@9tZy5r6f7GzA") {
-       res.status(403).end()
+      return res.status(403).send("接口鉴权失败");
     }
     next();
   });
